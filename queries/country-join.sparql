@@ -1,0 +1,8 @@
+# Use against a federation containing BACI and TiVA, or adapt to SERVICE endpoints.
+# The join discovers corresponding areas; it does not equate economic measures.
+PREFIX baci: <https://example.org/baci/vocab/>
+PREFIX tiva: <https://example.org/tiva/vocab/>
+SELECT ?baciArea ?tivaArea ?country WHERE {
+  ?baciArea baci:hasCountry ?country .
+  ?tivaArea tiva:hasCountry ?country .
+} LIMIT 100

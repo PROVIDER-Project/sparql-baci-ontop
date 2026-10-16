@@ -1,0 +1,13 @@
+area_code,reason
+58,Historical Belgium-Luxembourg union; source BEL must not identify Belgium alone
+200,Historical Czechoslovakia; CSK is a retired code
+278,Historical German Democratic Republic; DDR is a retired code
+280,Historical Federal Republic of Germany; source DEU does not describe its historical extent
+490,Other Asia nes; S19 is a source residual code and is not ISO3 TWN
+530,Historical Netherlands Antilles; ANT is a retired code
+697,Europe EFTA nes; R20 is a source residual code
+711,Historical Southern African Customs Union; ZA1 is not a country ISO3 code
+736,Historical Sudan including South Sudan; source SDN must not identify current Sudan alone
+810,Historical USSR; SUN is a retired code
+849,Historical US Miscellaneous Pacific Islands; PUS is a retired code
+891,Historical Serbia and Montenegro; SCG is a retired code

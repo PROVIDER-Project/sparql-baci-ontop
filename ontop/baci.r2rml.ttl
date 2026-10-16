@@ -1,0 +1,276 @@
+# BACI HS92 V202601: virtual QB/SDMX cube over DuckDB.
+# No labels or types are asserted on shared country IRIs.
+@prefix rr: <http://www.w3.org/ns/r2rml#> .
+@prefix ex: <https://example.org/baci/vocab/> .
+@prefix qb: <http://purl.org/linked-data/cube#> .
+@prefix sdmx-dimension: <http://purl.org/linked-data/sdmx/2009/dimension#> .
+@prefix sdmx-attribute: <http://purl.org/linked-data/sdmx/2009/attribute#> .
+@prefix sdmx-measure: <http://purl.org/linked-data/sdmx/2009/measure#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+
+<https://example.org/baci/mapping/observations> a rr:TriplesMap ;
+    rr:logicalTable [ rr:tableName "baci_observations" ] ;
+    rr:subjectMap [ rr:template "https://example.org/baci/observation/HS92_V202601/{OBSERVATION_LOCAL_NAME}" ; rr:termType rr:IRI ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:Observation ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:dataSet ; rr:objectMap [ rr:constant <https://example.org/baci/dataset/HS92_V202601> ] ] ;
+    rr:predicateObjectMap [ rr:predicate ex:exporter ; rr:objectMap [ rr:template "https://example.org/baci/area/{EXPORTER_CODE}" ; rr:termType rr:IRI ] ] ;
+    rr:predicateObjectMap [ rr:predicate ex:importer ; rr:objectMap [ rr:template "https://example.org/baci/area/{IMPORTER_CODE}" ; rr:termType rr:IRI ] ] ;
+    rr:predicateObjectMap [ rr:predicate ex:product ; rr:objectMap [ rr:template "https://example.org/baci/product/HS92/{PRODUCT_CODE}" ; rr:termType rr:IRI ] ] ;
+    rr:predicateObjectMap [ rr:predicate sdmx-dimension:refPeriod ; rr:objectMap [ rr:column "YEAR" ; rr:termType rr:Literal ; rr:datatype xsd:gYear ] ] ;
+    rr:predicateObjectMap [ rr:predicate sdmx-measure:obsValue ; rr:objectMap [ rr:column "TRADE_VALUE_LEXICAL" ; rr:termType rr:Literal ; rr:datatype xsd:double ] ] ;
+    rr:predicateObjectMap [ rr:predicate ex:quantity ; rr:objectMap [ rr:column "QUANTITY_LEXICAL" ; rr:termType rr:Literal ; rr:datatype xsd:double ] ] ;
+    rr:predicateObjectMap [ rr:predicate sdmx-attribute:unitMeasure ; rr:objectMap [ rr:constant <https://example.org/baci/unit/USD> ] ] ;
+    rr:predicateObjectMap [ rr:predicate sdmx-attribute:unitMult ; rr:objectMap [ rr:constant 3 ] ] ;
+    rr:predicateObjectMap [ rr:predicate ex:quantityUnit ; rr:objectMap [ rr:constant <https://example.org/baci/unit/tonne> ] ] .
+
+
+<https://example.org/baci/mapping/dataset> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant <https://example.org/baci/dataset/HS92_V202601> ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:DataSet ] ] ;
+    rr:predicateObjectMap [ rr:predicate dct:identifier ; rr:objectMap [ rr:constant "BACI-HS92-V202601" ] ] ;
+    rr:predicateObjectMap [ rr:predicate dct:title ; rr:objectMap [ rr:constant "CEPII BACI HS92, version 202601" ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:structure ; rr:objectMap [ rr:constant <https://example.org/baci/structure/HS92_V202601> ] ] ;
+    rr:predicateObjectMap [ rr:predicate dct:publisher ; rr:objectMap [ rr:constant <https://www.cepii.fr/> ] ] ;
+    rr:predicateObjectMap [ rr:predicate dct:source ; rr:objectMap [ rr:constant <https://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37> ] ] ;
+    rr:predicateObjectMap [ rr:predicate dct:license ; rr:objectMap [ rr:constant <https://www.etalab.gouv.fr/licence-ouverte-open-licence/> ] ] ;
+    rr:predicateObjectMap [ rr:predicate dct:bibliographicCitation ; rr:objectMap [ rr:constant "Gaulier, G. and Zignago, S. (2010). BACI: International Trade Database at the Product-Level. The 1994-2007 Version. CEPII Working Paper No. 2010-23. Dataset: BACI HS92 version 202601." ] ] ;
+    rr:predicateObjectMap [ rr:predicate dct:description ; rr:objectMap [ rr:constant "Selected years of BACI HS92 V202601. Trade values are in thousand USD; quantities in metric tonnes. Missing quantities are omitted. Country links follow the documented conservative source-code policy." ] ] .
+
+
+<https://example.org/baci/mapping/area-codes> a rr:TriplesMap ;
+    rr:logicalTable [ rr:tableName "baci_area" ] ;
+    rr:subjectMap [ rr:template "https://example.org/baci/area/{AREA_CODE}" ; rr:termType rr:IRI ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant skos:Concept ] ] ;
+    rr:predicateObjectMap [ rr:predicate skos:inScheme ; rr:objectMap [ rr:constant <https://example.org/baci/scheme/area> ] ] ;
+    rr:predicateObjectMap [ rr:predicate skos:notation ; rr:objectMap [ rr:column "AREA_CODE" ; rr:termType rr:Literal ; rr:datatype xsd:string ] ] ;
+    rr:predicateObjectMap [ rr:predicate skos:prefLabel ; rr:objectMap [ rr:column "AREA_NAME" ; rr:termType rr:Literal ; rr:datatype xsd:string ] ] ;
+    rr:predicateObjectMap [ rr:predicate ex:sourceIso2 ; rr:objectMap [ rr:column "SOURCE_ISO2" ; rr:termType rr:Literal ; rr:datatype xsd:string ] ] ;
+    rr:predicateObjectMap [ rr:predicate ex:sourceIso3 ; rr:objectMap [ rr:column "SOURCE_ISO3" ; rr:termType rr:Literal ; rr:datatype xsd:string ] ] .
+
+
+<https://example.org/baci/mapping/area-countries> a rr:TriplesMap ;
+    rr:logicalTable [ rr:tableName "baci_area_country" ] ;
+    rr:subjectMap [ rr:template "https://example.org/baci/area/{AREA_CODE}" ; rr:termType rr:IRI ] ;
+    rr:predicateObjectMap [ rr:predicate ex:hasCountry ; rr:objectMap [ rr:template "https://example.org/country/{COUNTRY_CODE}" ; rr:termType rr:IRI ] ] .
+
+
+<https://example.org/baci/mapping/unresolved-countries> a rr:TriplesMap ;
+    rr:logicalTable [ rr:tableName "baci_area_country_unresolved" ] ;
+    rr:subjectMap [ rr:template "https://example.org/baci/area/{AREA_CODE}" ; rr:termType rr:IRI ] ;
+    rr:predicateObjectMap [ rr:predicate ex:countryLinkOmission ; rr:objectMap [ rr:column "REASON" ; rr:termType rr:Literal ; rr:datatype xsd:string ] ] .
+
+
+<https://example.org/baci/mapping/product-codes> a rr:TriplesMap ;
+    rr:logicalTable [ rr:tableName "baci_product" ] ;
+    rr:subjectMap [ rr:template "https://example.org/baci/product/HS92/{PRODUCT_CODE}" ; rr:termType rr:IRI ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant skos:Concept ] ] ;
+    rr:predicateObjectMap [ rr:predicate skos:inScheme ; rr:objectMap [ rr:constant <https://example.org/baci/scheme/HS92> ] ] ;
+    rr:predicateObjectMap [ rr:predicate skos:notation ; rr:objectMap [ rr:column "PRODUCT_CODE" ; rr:termType rr:Literal ; rr:datatype xsd:string ] ] ;
+    rr:predicateObjectMap [ rr:predicate skos:prefLabel ; rr:objectMap [ rr:column "DESCRIPTION" ; rr:termType rr:Literal ; rr:datatype xsd:string ] ] .
+
+
+<https://example.org/baci/mapping/area-scheme> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant <https://example.org/baci/scheme/area> ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant skos:ConceptScheme ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:label ; rr:objectMap [ rr:constant "BACI reporting area codes, V202601" ] ] .
+
+
+<https://example.org/baci/mapping/HS92-scheme> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant <https://example.org/baci/scheme/HS92> ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant skos:ConceptScheme ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:label ; rr:objectMap [ rr:constant "BACI HS92 six-digit product codes" ] ] .
+
+
+<https://example.org/baci/mapping/unit-USD> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant <https://example.org/baci/unit/USD> ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant skos:Concept ] ] ;
+    rr:predicateObjectMap [ rr:predicate skos:notation ; rr:objectMap [ rr:constant "USD" ] ] ;
+    rr:predicateObjectMap [ rr:predicate skos:prefLabel ; rr:objectMap [ rr:constant "US dollars (trade value uses unit multiplier 3)" ] ] .
+
+
+<https://example.org/baci/mapping/unit-tonne> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant <https://example.org/baci/unit/tonne> ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant skos:Concept ] ] ;
+    rr:predicateObjectMap [ rr:predicate skos:notation ; rr:objectMap [ rr:constant "tonne" ] ] ;
+    rr:predicateObjectMap [ rr:predicate skos:prefLabel ; rr:objectMap [ rr:constant "Metric tonne (1000 kilograms)" ] ] .
+
+
+<https://example.org/baci/mapping/structure> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant <https://example.org/baci/structure/HS92_V202601> ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:DataStructureDefinition ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:component ; rr:objectMap [ rr:constant <https://example.org/baci/component/exporter> ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:component ; rr:objectMap [ rr:constant <https://example.org/baci/component/importer> ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:component ; rr:objectMap [ rr:constant <https://example.org/baci/component/product> ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:component ; rr:objectMap [ rr:constant <https://example.org/baci/component/period> ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:component ; rr:objectMap [ rr:constant <https://example.org/baci/component/value> ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:component ; rr:objectMap [ rr:constant <https://example.org/baci/component/quantity> ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:component ; rr:objectMap [ rr:constant <https://example.org/baci/component/value-unit> ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:component ; rr:objectMap [ rr:constant <https://example.org/baci/component/value-multiplier> ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:component ; rr:objectMap [ rr:constant <https://example.org/baci/component/quantity-unit> ] ] .
+
+
+<https://example.org/baci/mapping/exporter-component> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant <https://example.org/baci/component/exporter> ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:ComponentSpecification ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:dimension ; rr:objectMap [ rr:constant ex:exporter ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:order ; rr:objectMap [ rr:constant 1 ] ] .
+
+
+<https://example.org/baci/mapping/exporter-property> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant ex:exporter ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant rdf:Property ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:DimensionProperty ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:range ; rr:objectMap [ rr:constant skos:Concept ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:label ; rr:objectMap [ rr:constant "Exporter reporting area" ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:codeList ; rr:objectMap [ rr:constant <https://example.org/baci/scheme/area> ] ] .
+
+
+<https://example.org/baci/mapping/importer-component> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant <https://example.org/baci/component/importer> ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:ComponentSpecification ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:dimension ; rr:objectMap [ rr:constant ex:importer ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:order ; rr:objectMap [ rr:constant 2 ] ] .
+
+
+<https://example.org/baci/mapping/importer-property> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant ex:importer ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant rdf:Property ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:DimensionProperty ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:range ; rr:objectMap [ rr:constant skos:Concept ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:label ; rr:objectMap [ rr:constant "Importer reporting area" ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:codeList ; rr:objectMap [ rr:constant <https://example.org/baci/scheme/area> ] ] .
+
+
+<https://example.org/baci/mapping/product-component> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant <https://example.org/baci/component/product> ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:ComponentSpecification ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:dimension ; rr:objectMap [ rr:constant ex:product ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:order ; rr:objectMap [ rr:constant 3 ] ] .
+
+
+<https://example.org/baci/mapping/product-property> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant ex:product ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant rdf:Property ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:DimensionProperty ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:range ; rr:objectMap [ rr:constant skos:Concept ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:label ; rr:objectMap [ rr:constant "HS92 six-digit product" ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:codeList ; rr:objectMap [ rr:constant <https://example.org/baci/scheme/HS92> ] ] .
+
+
+<https://example.org/baci/mapping/period-component> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant <https://example.org/baci/component/period> ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:ComponentSpecification ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:dimension ; rr:objectMap [ rr:constant sdmx-dimension:refPeriod ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:order ; rr:objectMap [ rr:constant 4 ] ] .
+
+
+<https://example.org/baci/mapping/period-property> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant sdmx-dimension:refPeriod ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant rdf:Property ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:DimensionProperty ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:range ; rr:objectMap [ rr:constant xsd:gYear ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:label ; rr:objectMap [ rr:constant "Reference year" ] ] .
+
+
+<https://example.org/baci/mapping/value-component> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant <https://example.org/baci/component/value> ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:ComponentSpecification ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:measure ; rr:objectMap [ rr:constant sdmx-measure:obsValue ] ] .
+
+
+<https://example.org/baci/mapping/value-property> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant sdmx-measure:obsValue ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant rdf:Property ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:MeasureProperty ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:range ; rr:objectMap [ rr:constant xsd:double ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:label ; rr:objectMap [ rr:constant "Trade value" ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:comment ; rr:objectMap [ rr:constant "Value in thousand USD; unit multiplier 3 applies to this measure." ] ] .
+
+
+<https://example.org/baci/mapping/quantity-component> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant <https://example.org/baci/component/quantity> ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:ComponentSpecification ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:measure ; rr:objectMap [ rr:constant ex:quantity ] ] .
+
+
+<https://example.org/baci/mapping/quantity-property> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant ex:quantity ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant rdf:Property ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:MeasureProperty ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:range ; rr:objectMap [ rr:constant xsd:double ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:label ; rr:objectMap [ rr:constant "Trade quantity" ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:comment ; rr:objectMap [ rr:constant "Quantity in metric tonnes; absent when missing in BACI. No multiplier is applied." ] ] .
+
+
+<https://example.org/baci/mapping/value-unit-component> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant <https://example.org/baci/component/value-unit> ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:ComponentSpecification ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:attribute ; rr:objectMap [ rr:constant sdmx-attribute:unitMeasure ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:componentRequired ; rr:objectMap [ rr:constant true ] ] .
+
+
+<https://example.org/baci/mapping/value-unit-property> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant sdmx-attribute:unitMeasure ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant rdf:Property ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:AttributeProperty ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:range ; rr:objectMap [ rr:constant skos:Concept ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:label ; rr:objectMap [ rr:constant "Trade value currency" ] ] .
+
+
+<https://example.org/baci/mapping/value-multiplier-component> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant <https://example.org/baci/component/value-multiplier> ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:ComponentSpecification ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:attribute ; rr:objectMap [ rr:constant sdmx-attribute:unitMult ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:componentRequired ; rr:objectMap [ rr:constant true ] ] .
+
+
+<https://example.org/baci/mapping/value-multiplier-property> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant sdmx-attribute:unitMult ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant rdf:Property ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:AttributeProperty ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:range ; rr:objectMap [ rr:constant xsd:integer ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:label ; rr:objectMap [ rr:constant "Trade value decimal multiplier" ] ] .
+
+
+<https://example.org/baci/mapping/quantity-unit-component> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant <https://example.org/baci/component/quantity-unit> ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:ComponentSpecification ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:attribute ; rr:objectMap [ rr:constant ex:quantityUnit ] ] ;
+    rr:predicateObjectMap [ rr:predicate qb:componentRequired ; rr:objectMap [ rr:constant true ] ] .
+
+
+<https://example.org/baci/mapping/quantity-unit-property> a rr:TriplesMap ;
+    rr:logicalTable [ rr:sqlQuery "SELECT 1 AS singleton" ] ;
+    rr:subjectMap [ rr:constant ex:quantityUnit ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant rdf:Property ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdf:type ; rr:objectMap [ rr:constant qb:AttributeProperty ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:range ; rr:objectMap [ rr:constant skos:Concept ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:label ; rr:objectMap [ rr:constant "Trade quantity unit" ] ] .

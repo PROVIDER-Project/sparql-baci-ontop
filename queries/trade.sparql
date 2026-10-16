@@ -1,0 +1,13 @@
+PREFIX qb: <http://purl.org/linked-data/cube#>
+PREFIX baci: <https://example.org/baci/vocab/>
+PREFIX sdmx-dimension: <http://purl.org/linked-data/sdmx/2009/dimension#>
+PREFIX sdmx-measure: <http://purl.org/linked-data/sdmx/2009/measure#>
+SELECT ?year ?product ?thousandUSD ?tonnes WHERE {
+  ?observation a qb:Observation ;
+    baci:exporter ?exporter ; baci:importer ?importer ;
+    baci:product ?product ; sdmx-dimension:refPeriod ?year ;
+    sdmx-measure:obsValue ?thousandUSD .
+  ?exporter baci:hasCountry <https://example.org/country/DEU> .
+  ?importer baci:hasCountry <https://example.org/country/FRA> .
+  OPTIONAL { ?observation baci:quantity ?tonnes }
+} LIMIT 100

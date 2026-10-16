@@ -1,0 +1,7 @@
+PREFIX baci: <https://example.org/baci/vocab/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+SELECT ?area ?code ?label ?sourceIso3 ?reason WHERE {
+  ?area baci:countryLinkOmission ?reason ; skos:notation ?code .
+  OPTIONAL { ?area skos:prefLabel ?label }
+  OPTIONAL { ?area baci:sourceIso3 ?sourceIso3 }
+} ORDER BY ?code

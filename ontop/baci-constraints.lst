@@ -1,0 +1,10 @@
+baci:YEAR,EXPORTER_CODE,IMPORTER_CODE,PRODUCT_CODE
+baci:OBSERVATION_LOCAL_NAME
+baci_year:YEAR
+baci_country_definition:AREA_CODE
+baci_country_exclusion:AREA_CODE
+baci_area:AREA_CODE
+baci_area_country:AREA_CODE
+baci_area_country:COUNTRY_CODE
+baci_area_country_unresolved:AREA_CODE
+baci_product:PRODUCT_CODE

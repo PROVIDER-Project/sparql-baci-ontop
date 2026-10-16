@@ -1,0 +1,48 @@
+{
+  "relations": [
+    {
+      "name": [
+        "baci_observations"
+      ],
+      "baseRelation": [
+        "baci"
+      ],
+      "columns": {
+        "added": [],
+        "hidden": []
+      },
+      "filterExpression": "TRADE_VALUE IS NOT NULL",
+      "uniqueConstraints": {
+        "added": [
+          {
+            "name": "baci_observation_key",
+            "determinants": [
+              "YEAR",
+              "EXPORTER_CODE",
+              "IMPORTER_CODE",
+              "PRODUCT_CODE"
+            ]
+          },
+          {
+            "name": "baci_observation_local_name_key",
+            "determinants": [
+              "OBSERVATION_LOCAL_NAME"
+            ]
+          }
+        ]
+      },
+      "nonNullConstraints": {
+        "added": [
+          "YEAR",
+          "EXPORTER_CODE",
+          "IMPORTER_CODE",
+          "PRODUCT_CODE",
+          "OBSERVATION_LOCAL_NAME",
+          "TRADE_VALUE",
+          "TRADE_VALUE_LEXICAL"
+        ]
+      },
+      "type": "BasicLens"
+    }
+  ]
+}
