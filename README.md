@@ -1,93 +1,34 @@
-# BACI HS92 over SPARQL (Ontop + DuckDB)
+# BACI HS92 V202601, 2024 only over SPARQL
 
-Serve the deployed **CEPII BACI HS92 V202601** Maven data as a virtual
-QB/SDMX RDF graph. This follows the sibling `sparql-tiva-ontop` and
-`sparql-faostat-ontop` projects: download compressed CSV artifacts, ingest
-relational tables into DuckDB, then serve read-only JDBC through Ontop R2RML.
-RDF is never materialized.
+The database and endpoint are released independently, using the same layout as
+[sparql-faostat-ontop](../sparql-faostat-ontop/README.md). RDF remains virtual;
+Ontop rewrites SPARQL into SQL over DuckDB.
 
-## Start
-
-Requires Docker and Docker Compose v2.
-
-```sh
-docker compose up -d
-```
-
-The default selection is **2024**, the latest year in this release. The SPARQL
-endpoint is **http://localhost:8082/sparql** (`ONTOP_PORT` overrides the port).
-Ontop is pinned to 5.5.0 and both DuckDB CLI and JDBC to 1.5.6 / 1.5.6.0,
-matching the reference projects. Runtime files are ignored by Git.
-
-Three services run in sequence:
-
-1. `fetch` runs `loader/fetch.sh`. It downloads the selected years, both code
-   tables, the original readme, and JDBC. Completed nonempty files are cached;
-   downloads use `.part` files and are renamed only on success. Only after all
-   downloads succeed is `data/years.csv` replaced with the selected years.
-2. `load` runs `loader/load-duckdb.sh` and `ontop/load.sql`, transactionally
-   rebuilding facts, code lists, country links and indexes in
-   `run/baci.duckdb`. It marks success only after DuckDB exits successfully.
-3. `ontop` opens the database read-only, using the R2RML mapping, lenses and
-   uniqueness constraints. `ontop.cardinalityMode=STRICT` preserves RDF/SPARQL
-   multiplicities. Query logging includes reformulated SQL.
-
-The load is skipped if both a nonempty database and its `.complete` marker
-exist. The marker is manual: changes to the year selection, source files,
-country policy or SQL require the rebuild below.
-
-Select multiple years before the first start:
+- [database/](database/README.md): Maven resolves pinned source inputs, loads the
+  database, compresses it and attaches a versioned `duckdb.zst` artifact for
+  local installation or remote deployment.
+- [endpoint/](endpoint/README.md): a disposable Maven container resolves that
+  artifact and JDBC, then Docker packages a self-contained read-only service.
+  The Makefile provides building, tests and explicit GHCR publication.
 
 ```sh
-BACI_YEARS='2023 2024' docker compose up -d
-# All 30 years (requires substantially more load time, memory and disk):
-BACI_YEARS="$(seq -s ' ' 1995 2024)" docker compose up -d
+# Generate and install into the endpoint's project-local Maven repository:
+mvn -f database/pom.xml -Dmaven.repo.local="$PWD/endpoint/.cache/maven/repository" install
+make -C endpoint build
+make -C endpoint up
 ```
 
-Persist the desired values in a local `.env` file if needed (see `.env.example`).
-The fetcher accepts only whitespace-separated years 1995..2024. SQL reads
-exactly the files listed in `years.csv`; old cached files are not included.
-Duplicate year selections are deduplicated. A missing selected file, mismatched
-row year, malformed product code or duplicate observation key fails the load.
+The new data coordinate is `org.aksw.data.baci:baci-hs92-v202601-2024-duckdb:duckdb.zst:0.0.1`.
+It is not assumed to be remotely deployed. Install it locally as above or deploy
+it before resolving it remotely. Endpoint and database versions are independent;
+keep published data releases immutable. The service defaults to
+`http://localhost:8082/sparql`.
 
-### Rebuild or change years
-
-Stop Ontop before loading: its JDBC connections hold the database read-only.
-Keep the same `BACI_YEARS` setting for later ordinary starts.
-
-```sh
-docker compose stop ontop
-BACI_YEARS='2023 2024' docker compose run --rm fetch
-rm -f run/baci.duckdb.complete
-docker compose run --rm load && docker compose up -d --no-deps --force-recreate ontop
-```
-
-Do not run the load command if fetching failed. A failed transactional rebuild
-preserves the previous committed tables and leaves no completion marker.
-Source and database volumes survive `docker compose down`.
-
-## Deployed artifacts
-
-Coordinates: `org.aksw.data.thirdparty.fr.cepii.baci:HS92_V202601:1`.
-The default `BACI_BASE_URL` is:
-
-```text
-https://maven.inf-ai.duckdns.org/releases/org/aksw/data/thirdparty/fr/cepii/baci/HS92_V202601/1
-```
-
-Artifact filenames beneath this URL:
-
-- `HS92_V202601-1-BACI_HS92_Y{YEAR}_V202601.csv.zst`
-- `HS92_V202601-1-country_codes_V202601.csv.zst`
-- `HS92_V202601-1-product_codes_HS92_V202601.csv.zst`
-- `HS92_V202601-1-readme.txt`
-
-Override `BACI_BASE_URL` when using another Maven mirror; keep the coordinates
-and filenames. JDBC comes from Maven Central:
-`org/duckdb/duckdb_jdbc/1.5.6.0/duckdb_jdbc-1.5.6.0.jar`.
-The default 2024 source is about 104 MB compressed. The full 30-year release is
-about 2.7 GB compressed; the relational database and indexes need additional
-space. Full-release load resource usage has not been benchmarked.
+Old Compose/source-loading instructions and unused caches are archived locally
+under ignored `trash/`. They are not used by the new workflow. In particular,
+existing databases were preserved, not adopted as newly generated artifacts.
+The shared Helm chart at `../helm-charts/charts/ontop` consumes the resulting
+endpoint image without database build logic.
 
 ## Country mapping: included data, with explicit exceptions
 
@@ -139,7 +80,7 @@ ISO2 does not disqualify a valid source ISO3 (e.g. Namibia).
 | 849 | PUS | Historical US Miscellaneous Pacific Islands |
 | 891 | SCG | Historical Serbia and Montenegro |
 
-The versioned policy is `ontop/baci-country-exclusions.csv`. SQL preserves the
+The versioned policy is `database/baci-country-exclusions.csv`. SQL preserves the
 source table separately, requires unique numeric-code and eligible ISO3
 mappings, and records all omissions in `baci_area_country_unresolved` with
 reasons. The reasons are also queryable through `baci:countryLinkOmission`.
@@ -229,29 +170,20 @@ production measures directly comparable.
 
 ## Validation
 
-```sh
-python3 -m unittest discover -s tests -v
-```
+See [database checks](database/README.md#tests) and [endpoint checks](endpoint/README.md#runtime-and-checks).
 
-Fetch and completion-marker tests use fake executables and need only Python 3.
-The SQL tests use real compressed fixtures, `zstd`, a JDK, and the JDBC jar in
-`jdbc/` (or `DUCKDB_JDBC_JAR`). For actual Ontop query tests, extract the 5.5.0
-CLI, put the JDBC jar in its `jdbc/`, and set `ONTOP_CLI` to its `ontop` script:
+## Migration validation (25 October 2026)
 
-```sh
-DUCKDB_JDBC_JAR=/path/to/duckdb_jdbc-1.5.6.0.jar \
-ONTOP_CLI=/path/to/ontop-cli/ontop \
-python3 -m unittest discover -s tests -v
-```
+The real Maven/Docker generator, compression and attachment lifecycle passed on
+small synthetic inputs. Those archives were installed only as version
+`0.0.0-fixture`, then resolved offline from the project-local Maven cache to build
+`provider/sparql-baci-ontop:migration-fixture`. Seven Makefile checks and
+four real SPARQL/image checks passed. The database fixture suite passed 15 checks (the optional external Ontop CLI test was skipped).
+The image tests checked exact fixture counts, fixed-subject lookup, RDF literal
+types, country links, read-only permissions, non-root execution and checksum metadata.
 
-Checks cover year selection and stale caches, atomic failed-download retries,
-rollback after invalid/missing files and duplicate keys, country aliases and
-unknown areas, leading zeros, null/zero quantities, observation counts,
-numeric SPARQL filters/aggregation, shared-country joins and absence of country
-descriptions. The SQL tests and RDF tests skip with an explicit reason if their
-external prerequisites are absent.
-
-Initial validation used DuckDB JDBC 1.5.6.0 and Ontop 5.5.0, plus a 10,000-row
-sample of the real 2024 data and the complete country/product tables (238 areas,
-226 country links, 12 omissions, 5022 products). Compose configuration was
-validated. The full 30-year database and Docker services were not started.
+Fixture staging was moved to `endpoint/target/fixture-artifacts/` afterward;
+production resolution must populate `target/artifacts/` before a direct Docker
+build. Production data artifacts were not generated/deployed and endpoint images
+were not pushed. No deployed service was restarted. Full-data resource use and
+counts still need validation on a production build, especially for TiVA.

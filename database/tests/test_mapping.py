@@ -12,7 +12,7 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-JAR = Path(os.environ.get('DUCKDB_JDBC_JAR', ROOT / 'jdbc/duckdb_jdbc-1.5.6.0.jar'))
+JAR = Path(os.environ.get('DUCKDB_JDBC_JAR', ROOT / 'target/test-dependencies/duckdb_jdbc-1.5.6.0.jar'))
 CLI = os.environ.get('ONTOP_CLI')
 
 
@@ -34,9 +34,9 @@ class MappingTests(unittest.TestCase):
         self.directory = Path(self.temp.name)
         self.database = self.directory / 'baci.duckdb'
         self.sql = self.directory / 'load.sql'
-        self.sql.write_text((ROOT / 'ontop/load.sql').read_text()
+        self.sql.write_text((ROOT / 'load.sql').read_text()
                             .replace('/data/', str(self.directory) + '/')
-                            .replace('/opt/ontop/input/', str(ROOT / 'ontop') + '/'))
+                            .replace('/opt/ontop/input/', str(ROOT) + '/'))
         (self.directory / 'years.csv').write_text('year\n2024\n2024\n')
         self.rows = [
             [2024, 276, 251, '010111', 1.25, 0],
@@ -146,7 +146,7 @@ SELECT CASE WHEN count(*)=7 AND sum(CAST(is_unique AS INTEGER))=1 THEN true ELSE
     def test_ontop_rdf(self):
         self.load()
         properties = self.directory / 'baci.properties'
-        properties.write_text((ROOT / 'ontop/baci.properties').read_text()
+        properties.write_text((ROOT.parent / 'endpoint/ontop/baci.properties').read_text()
                               .replace('/data/baci.duckdb', str(self.database)))
         queries = [
             ('SELECT (COUNT(*) AS ?n) WHERE { ?o a <http://purl.org/linked-data/cube#Observation> }', ['5']),
@@ -162,9 +162,9 @@ SELECT CASE WHEN count(*)=7 AND sum(CAST(is_unique AS INTEGER))=1 THEN true ELSE
                 path = self.directory / 'query.rq'
                 output = self.directory / 'result.csv'
                 path.write_text(query)
-                result = subprocess.run(['bash', CLI, 'query', '-m', str(ROOT / 'ontop/baci.r2rml.ttl'),
-                                         '-p', str(properties), '-c', str(ROOT / 'ontop/baci-constraints.lst'),
-                                         '--lenses', str(ROOT / 'ontop/baci-lenses.json'), '-q', str(path),
+                result = subprocess.run(['bash', CLI, 'query', '-m', str(ROOT.parent / 'endpoint/ontop/baci.r2rml.ttl'),
+                                         '-p', str(properties), '-c', str(ROOT.parent / 'endpoint/ontop/baci-constraints.lst'),
+                                         '--lenses', str(ROOT.parent / 'endpoint/ontop/baci-lenses.json'), '-q', str(path),
                                          '-o', str(output)], capture_output=True, text=True, timeout=120)
                 self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 self.assertTrue(output.exists(), result.stdout + result.stderr)

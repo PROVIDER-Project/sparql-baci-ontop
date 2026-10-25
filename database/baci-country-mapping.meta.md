@@ -28,5 +28,6 @@ relations, or reinterpretation of source S19 as TWN. Such additions need their
 own explicit provenance and temporal semantics. Country descriptions belong to
 a separate country dataset, consistent with the sibling TiVA and FAOSTAT maps.
 
-These hashes record the inspected inputs; the fetcher follows the sibling
-nonempty-file caching convention and does not enforce them automatically.
+These hashes record the inspected inputs. Maven checks repository checksums
+on download; the recorded SHA-256 values above remain provenance and are not
+separately enforced by the build.

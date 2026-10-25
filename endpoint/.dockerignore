@@ -1,0 +1,16 @@
+# Only resolved artifacts, endpoint configuration and attribution enter the build context.
+**
+!Dockerfile
+!README.md
+!ontop/
+!ontop/baci.r2rml.ttl
+!ontop/baci.properties
+!ontop/baci-constraints.lst
+!ontop/baci-lenses.json
+!ontop/baci-country-mapping.meta.md
+!target/
+!target/artifacts/
+!target/artifacts/baci.duckdb.zst
+!target/artifacts/baci.duckdb.zst.sha1
+!target/artifacts/duckdb_jdbc.jar
+!target/artifacts/duckdb_jdbc.jar.sha1
