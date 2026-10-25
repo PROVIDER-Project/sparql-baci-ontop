@@ -2,7 +2,7 @@
 -- The manifest selects files explicitly: stale cached years are not ingested.
 BEGIN TRANSACTION;
 CREATE OR REPLACE TABLE baci_year (YEAR INTEGER PRIMARY KEY CHECK (YEAR BETWEEN 1995 AND 2024));
-INSERT INTO baci_year SELECT DISTINCT year FROM read_csv('/data/years.csv', header=true, columns={'year':'INTEGER'});
+INSERT INTO baci_year SELECT DISTINCT year FROM read_csv('/opt/ontop/input/years.csv', header=true, columns={'year':'INTEGER'});
 SELECT CASE WHEN count(*) > 0 THEN true ELSE error('No BACI years selected') END FROM baci_year;
 SET VARIABLE baci_files = (SELECT list('/data/BACI_HS92_Y' || YEAR || '_V202601.csv.zst' ORDER BY YEAR) FROM baci_year);
 

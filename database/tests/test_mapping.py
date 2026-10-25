@@ -35,6 +35,7 @@ class MappingTests(unittest.TestCase):
         self.database = self.directory / 'baci.duckdb'
         self.sql = self.directory / 'load.sql'
         self.sql.write_text((ROOT / 'load.sql').read_text()
+                            .replace('/opt/ontop/input/years.csv', str(self.directory / 'years.csv'))
                             .replace('/data/', str(self.directory) + '/')
                             .replace('/opt/ontop/input/', str(ROOT) + '/'))
         (self.directory / 'years.csv').write_text('year\n2024\n2024\n')

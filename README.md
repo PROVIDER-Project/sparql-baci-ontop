@@ -1,189 +1,83 @@
-# BACI HS92 V202601, 2024 only over SPARQL
+# BACI HS92 V202601 (2024) over SPARQL
 
-The database and endpoint are released independently, using the same layout as
-[sparql-faostat-ontop](../sparql-faostat-ontop/README.md). RDF remains virtual;
-Ontop rewrites SPARQL into SQL over DuckDB.
+Serve BACI HS92 V202601 (2024) as a virtual RDF data cube using Ontop and DuckDB.
+The [database build](database/README.md) publishes a compressed Maven artifact;
+the [endpoint build](endpoint/README.md) packages it with the mappings.
 
-- [database/](database/README.md): Maven resolves pinned source inputs, loads the
-  database, compresses it and attaches a versioned `duckdb.zst` artifact for
-  local installation or remote deployment.
-- [endpoint/](endpoint/README.md): a disposable Maven container resolves that
-  artifact and JDBC, then Docker packages a self-contained read-only service.
-  The Makefile provides building, tests and explicit GHCR publication.
+## Build and run
+
+Requires Maven, a JDK, GNU Make and Docker with BuildKit/Compose.
+From the repository root:
 
 ```sh
-# Generate and install into the endpoint's project-local Maven repository:
-mvn -f database/pom.xml -Dmaven.repo.local="$PWD/endpoint/.cache/maven/repository" install
-make -C endpoint build
+mvn -f database/pom.xml -P local deploy
 make -C endpoint up
 ```
 
-The new data coordinate is `org.aksw.data.baci:baci-hs92-v202601-2024-duckdb:duckdb.zst:0.0.1`.
-It is not assumed to be remotely deployed. Install it locally as above or deploy
-it before resolving it remotely. Endpoint and database versions are independent;
-keep published data releases immutable. The service defaults to
-`http://localhost:8082/sparql`.
+The `local` profile publishes the dataset to `database/target/m2` and skips
+installation into your normal Maven repository. Without it, `mvn install` and
+`mvn deploy` also put the dataset alongside your other Maven artifacts
+(usually in `~/.m2/repository`). Source and plugin dependencies still use Maven's
+configured cache in either case.
 
-Old Compose/source-loading instructions and unused caches are archived locally
-under ignored `trash/`. They are not used by the new workflow. In particular,
-existing databases were preserved, not adopted as newly generated artifacts.
-The shared Helm chart at `../helm-charts/charts/ontop` consumes the resulting
-endpoint image without database build logic.
-
-## Country mapping: included data, with explicit exceptions
-
-**No auxiliary country artifact is required for ordinary country links.** The
-BACI artifact already contains `country_codes_V202601.csv.zst`, with:
-
-```text
-country_code,country_name,country_iso2,country_iso3
-```
-
-Facts use `i` and `j` to reference `country_code`. These are **BACI/Comtrade area
-codes**, not universally ISO numeric/M49 codes. For example France is `251`,
-India `699`, Norway `579`, Switzerland `757`, and USA `842`. Do not derive ISO3
-by padding these numbers and joining an ISO numeric table.
-
-Both dimensions point to BACI-specific area resources, for example:
-
-```turtle
-<https://example.org/baci/observation/HS92_V202601/2024-276-251-010111>
-  <https://example.org/baci/vocab/exporter> <https://example.org/baci/area/276> ;
-  <https://example.org/baci/vocab/importer> <https://example.org/baci/area/251> .
-
-<https://example.org/baci/area/276>
-  <https://example.org/baci/vocab/hasCountry> <https://example.org/country/DEU> .
-```
-
-The `https://example.org/country/{ISO3}` resources are the same join targets
-used by TiVA and FAOSTAT. No descriptive triples are asserted on those shared
-resources. Labels and original ISO columns describe the BACI **area** instead.
-The source country and product labels are preserved, including existing
-mojibake in a few country names; they are not silently corrected.
-
-The complete supplied table has **238 areas**. The pinned-release policy
-produces **226 country links** and **12 explicitly unresolved areas**. An absent
-ISO2 does not disqualify a valid source ISO3 (e.g. Namibia).
-
-| BACI code | Source ISO3 | Why no automatic shared-country identity |
-| --- | --- | --- |
-| 58 | BEL | Historical Belgium–Luxembourg union, not Belgium alone |
-| 200 | CSK | Historical Czechoslovakia |
-| 278 | DDR | Historical German Democratic Republic |
-| 280 | DEU | Historical Federal Republic of Germany |
-| 490 | S19 | “Other Asia, nes”; source code is not ISO3 TWN |
-| 530 | ANT | Historical Netherlands Antilles |
-| 697 | R20 | “Europe EFTA, nes” residual |
-| 711 | ZA1 | Historical Southern African Customs Union |
-| 736 | SDN | Historical Sudan including South Sudan |
-| 810 | SUN | Historical USSR |
-| 849 | PUS | Historical US Miscellaneous Pacific Islands |
-| 891 | SCG | Historical Serbia and Montenegro |
-
-The versioned policy is `database/baci-country-exclusions.csv`. SQL preserves the
-source table separately, requires unique numeric-code and eligible ISO3
-mappings, and records all omissions in `baci_area_country_unresolved` with
-reasons. The reasons are also queryable through `baci:countryLinkOmission`.
-Unknown observed numeric codes retain area resources and facts, receive no
-country link, and are reported as missing source definitions. Country and
-product tables cover the complete source code lists, even for a fact subset.
-
-BACI's `S19` remains a source notation, never a `/country/S19` identity.
-Using code 490 as a Taiwan proxy is a separate analytical decision. Likewise,
-historical areas may require dated memberships or successor relations rather
-than identity. If those links are needed, add a separately documented,
-versioned concordance with source, validity dates, relation type and confidence;
-a reusable Maven artifact would be appropriate. Do not turn the historical
-`BEL` and `SDN` aliases into current-country identities or use `owl:sameAs`.
-No values are allocated among successor countries by this mapping.
-
-Sources: the pinned artifact's country table and `Readme.txt`;
-[CEPII BACI documentation](https://www.cepii.fr/DATA_DOWNLOAD/baci/doc/baci_webpage.html).
-The country-link exclusions are this project's conservative policy, not an
-additional official CEPII concordance. Its ISO3 shape check is paired with the
-reviewed exclusions for V202601; it is not a general ISO registry validator.
-Re-audit the table and policy before changing the pinned source version.
-
-## RDF model and units
-
-Namespaces intentionally follow the example.org conventions in the siblings.
-They should be consolidated together when the provider vocabulary is finalized.
-
-One row is one `qb:Observation`, keyed by `(t, i, j, k)`. The IRI is:
-
-```text
-https://example.org/baci/observation/HS92_V202601/{YEAR}-{EXPORTER}-{IMPORTER}-{HS6}
-```
-
-A unique index enforces this key. All components are constrained to digits, so
-hyphens are unambiguous without escaping. The mapping keeps a visible constant
-prefix and a single stored `OBSERVATION_LOCAL_NAME` for selective subject lookup.
-
-| Predicate | Source | RDF object / meaning |
-| --- | --- | --- |
-| `qb:dataSet` | constant | `.../baci/dataset/HS92_V202601` |
-| `baci:exporter` | `i` | `.../baci/area/{code}` |
-| `baci:importer` | `j` | `.../baci/area/{code}` |
-| `baci:product` | `k` | `.../baci/product/HS92/{six-digit-code}` |
-| `sdmx-dimension:refPeriod` | `t` | `xsd:gYear` |
-| `sdmx-measure:obsValue` | `v` | `xsd:double`, **thousand USD** |
-| `baci:quantity` | `q` | `xsd:double`, **metric tonnes** |
-| `sdmx-attribute:unitMeasure` | constant | `.../baci/unit/USD`, applies to value |
-| `sdmx-attribute:unitMult` | constant | integer `3`, applies to value |
-| `baci:quantityUnit` | constant | `.../baci/unit/tonne`, no multiplier |
-
-`baci:` is `https://example.org/baci/vocab/`. The dataset mapping includes the
-QB structure, dimension/measure/attribute declarations, code schemes, units,
-CEPII attribution and Etalab 2.0 licence metadata. Values are **not converted**;
-multiply `obsValue` by 1000 only if dollar amounts are wanted. Never apply the
-value multiplier to quantities. Product codes use VARCHAR throughout so
-`010111` retains its leading zero. Areas use BACI's unpadded numeric notation.
-
-Empty or `NA` quantities produce no quantity triple. Zero quantities remain
-zero. A null trade value is retained relationally but is excluded by the
-observation lens. This avoids dropping a value observation when only its
-quantity is missing.
-
-The code-list tables enforce primary keys. Observations have an enforced unique
-local-name index, plus exporter, importer, product, year and lexical-value
-indexes. Stored lexical columns avoid query-time casts on exact RDF object
-lookups; numeric columns remain available for SQL. `ANALYZE` runs after loading.
-Indexes do not make unbound triple scans cheap. Broad queries or common values
-can still require scans and duplicate elimination under STRICT semantics.
-
-## Query
+The endpoint uses `database/target/m2` by default when present, with its own
+Maven cache and remote repositories available too. Override this folder with
+`DATABASE_REPOSITORY`, or set it empty to disable it:
 
 ```sh
-curl -fsS 'http://localhost:8082/sparql' \
-  --data-urlencode 'query@queries/trade.sparql' \
-  -H 'Accept: application/sparql-results+json'
+make -C endpoint build DATABASE_REPOSITORY=/path/to/m2
 ```
 
-`queries/trade.sparql` finds Germany-to-France flows through shared country
-links and returns value plus optional quantity. `queries/unresolved-areas.sparql`
-shows omitted country links and reasons. `queries/country-join.sparql` illustrates
-a join with TiVA when both graphs are available to a federation; a standalone
-BACI endpoint does not itself contain TiVA data. Use FAOSTAT's
-`https://example.org/faostat/vocab/hasCountry` for the analogous country join.
-Country alignment does not make BACI gross trade, TiVA value added, and FAOSTAT
-production measures directly comparable.
+Settings can also go in `endpoint/.env`; see
+[endpoint configuration](endpoint/README.md#configuration).
+The service runs at [localhost:8082/sparql](http://localhost:8082/sparql).
+Use `make -C endpoint down` to stop it and `make -C endpoint help` for all targets.
 
-## Validation
+## Publish
 
-See [database checks](database/README.md#tests) and [endpoint checks](endpoint/README.md#runtime-and-checks).
+Database and endpoint versions are independent. Set a new POM version for each
+immutable data release, then publish with Maven credentials from `settings.xml`:
 
-## Migration validation (25 October 2026)
+```sh
+mvn -f database/pom.xml deploy \
+  -DaltDeploymentRepository=aksw-data-releases::https://maven.inf-ai.duckdns.org/releases
+make -C endpoint login GHCR_USER=YOUR_GITHUB_USERNAME
+make -C endpoint publish VERSION=0.0.2 DATABASE_VERSION=0.0.1
+```
 
-The real Maven/Docker generator, compression and attachment lifecycle passed on
-small synthetic inputs. Those archives were installed only as version
-`0.0.0-fixture`, then resolved offline from the project-local Maven cache to build
-`provider/sparql-baci-ontop:migration-fixture`. Seven Makefile checks and
-four real SPARQL/image checks passed. The database fixture suite passed 15 checks (the optional external Ontop CLI test was skipped).
-The image tests checked exact fixture counts, fixed-subject lookup, RDF literal
-types, country links, read-only permissions, non-root execution and checksum metadata.
+Current database coordinates:
+`org.aksw.data.baci:baci-hs92-v202601-2024-duckdb:duckdb.zst:0.0.1`.
+Building an endpoint locally does not publish it.
 
-Fixture staging was moved to `endpoint/target/fixture-artifacts/` afterward;
-production resolution must populate `target/artifacts/` before a direct Docker
-build. Production data artifacts were not generated/deployed and endpoint images
-were not pushed. No deployed service was restarted. Full-data resource use and
-counts still need validation on a production build, especially for TiVA.
+## Design and scope
+
+The build follows [FAOSTAT](../sparql-faostat-ontop/README.md): source data and
+scripts are bind mounted into the generation containers; completion markers
+skip repeated loading and compression. The endpoint image contains an unpacked,
+read-only database, with data layers before JDBC and configuration.
+
+BACI contains **2024 only**. `database/years.csv` selects the year; code lists
+remain complete. Country links use BACI area codes and a reviewed exclusion
+policy, rather than treating numeric area codes as ISO/M49 identities.
+
+After changing database inputs or loading settings, rebuild with
+`mvn -f database/pom.xml -P local clean deploy`. This removes `target/m2` too.
+Use new release versions for changed published data; Maven may reuse cached
+releases. See [model and country-link details](docs/model.md).
+The sibling [Helm chart](../helm-charts/charts/ontop/README.md) deploys the
+selected endpoint image independently.
+
+## Tests
+
+See [database tests](database/README.md#tests) for fixtures and script checks.
+`make -C endpoint check` verifies orchestration; `make -C endpoint test` also
+builds and queries an isolated endpoint container.
+
+## Sources and licence
+
+CEPII BACI V202601 (30 January 2026), HS92, 2024. Citation: Gaulier and Zignago
+(2010), *BACI: International Trade Database at the Product-Level*, CEPII Working
+Paper 2010-23. Data licence: [Etalab 2.0](https://www.data.gouv.fr/pages/legal/licences/etalab-2.0).
+Retain source attribution and transformation notices. Country-link exclusions
+are PROVIDER policy, not an official CEPII concordance. See the
+[country provenance record](database/baci-country-mapping.meta.md).
