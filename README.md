@@ -75,6 +75,10 @@ builds and queries an isolated endpoint container.
 
 ## Sources and licence
 
+Original project material is licensed under [Apache-2.0](LICENSE).
+[Licensing notes](LICENSING.md) distinguish third-party/data terms and declare
+that the information about those terms was derived with AI assistance.
+
 CEPII BACI V202601 (30 January 2026), HS92, 2024. Citation: Gaulier and Zignago
 (2010), *BACI: International Trade Database at the Product-Level*, CEPII Working
 Paper 2010-23. Data licence: [Etalab 2.0](https://www.data.gouv.fr/pages/legal/licences/etalab-2.0).

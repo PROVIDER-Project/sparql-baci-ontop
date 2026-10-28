@@ -29,6 +29,9 @@ COPY --chown=ontop:ontop target/artifacts/duckdb_jdbc.jar.sha1 /opt/ontop/input/
 FROM endpoint-base AS endpoint
 ARG ENDPOINT_VERSION
 
+COPY --chown=ontop:ontop LICENSE LICENSING.md /opt/ontop/licenses/
+COPY --chown=ontop:ontop third-party/ /opt/ontop/licenses/third-party/
+
 COPY --chown=ontop:ontop ontop/baci.r2rml.ttl ontop/baci.properties ontop/baci-constraints.lst ontop/baci-lenses.json /opt/ontop/input/
 COPY --chown=ontop:ontop README.md ontop/baci-country-mapping.meta.md /opt/ontop/input/
 

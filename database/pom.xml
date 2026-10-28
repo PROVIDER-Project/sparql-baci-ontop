@@ -37,7 +37,11 @@ Attribution: CEPII BACI V202601 (30 January 2026), HS92, 2024 only. Gaulier and 
       <name>Etalab Open Licence 2.0</name>
       <url>https://www.data.gouv.fr/pages/legal/licences/etalab-2.0</url>
       <distribution>repo</distribution>
-      <comments>Source attribution and transformation notices must be retained. CEPII data are supplied under Etalab 2.0. This licence covers the derived data artifact, not third-party software.</comments>
+      <comments>Source attribution and transformation notices must be retained. CEPII data are supplied under Etalab 2.0. This licence covers the derived data artifact, not third-party software.
+        Licence identification and interpretation were AI-assisted in an attempt to
+        be as accurate as possible. This summary is not legal advice; authoritative
+        upstream licences and dataset-specific terms govern.
+      </comments>
     </license>
   </licenses>
   <scm>
