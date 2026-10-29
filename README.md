@@ -35,7 +35,9 @@ Use `make -C endpoint down` to stop it and `make -C endpoint help` for all targe
 
 ## Publish
 
-Database and endpoint versions are independent. Set a new POM version for each
+Database and endpoint versions are independent. Endpoint release defaults live
+in `endpoint/build.conf`; `make … VERSION=...` overrides them.
+Set a new POM version for each
 immutable data release, then publish with Maven credentials from `settings.xml`:
 
 ```sh
