@@ -154,3 +154,28 @@ Attribution and geographic provenance are also included in the image.
 Project material is [Apache-2.0 licensed](LICENSE). See [licensing notes](LICENSING.md)
 for third-party/data terms and the AI-assisted provenance of that information.
 The image includes these files under `/opt/ontop/licenses/`.
+
+## Namespace expansion
+
+`ontop/baci.r2rml.ttl.in` is the mapping source. Each endpoint has its own
+`ontop/namespaces.sh`, which supplies defaults while preserving nonempty environment
+overrides. `ontop/expand.sh` substitutes only `NS_GLOBAL_O`, `NS_GLOBAL_R`, `NS_BACI_O`, `NS_BACI_R`;
+unrelated dollar expressions remain literal. It requires `envsubst` (gettext).
+
+Render manually from this directory:
+
+```sh
+sh ontop/expand.sh < ontop/baci.r2rml.ttl.in > /tmp/baci.r2rml.ttl
+```
+
+The container renders to `/tmp/provider-baci.r2rml.ttl` on startup, then runs
+Ontop's original entrypoint as the unprivileged `ontop` user. Pass namespace
+overrides with `docker run -e NS_BACI_R=https://staging.example.org/baci/ ...`
+or add them to your Compose/Kubernetes container environment. Host environment
+variables must be explicitly forwarded to a container. An explicit
+`ONTOP_MAPPING_FILE` pointing elsewhere bypasses the bundled mapping expansion.
+
+Defaults use `schema.projekt-provider.de/global#` for shared terms (including
+`hasCountry`), `schema.projekt-provider.de/baci#` for project terms, and
+`data.projekt-provider.de/` for instance IRIs. Release/snapshot paths retain their
+existing values. No database reload or reindex is required.

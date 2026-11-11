@@ -149,21 +149,28 @@ SELECT CASE WHEN count(*)=7 AND sum(CAST(is_unique AS INTEGER))=1 THEN true ELSE
         properties = self.directory / 'baci.properties'
         properties.write_text((ROOT.parent / 'endpoint/ontop/baci.properties').read_text()
                               .replace('/data/baci.duckdb', str(self.database)))
+        mapping = self.directory / 'baci.r2rml.ttl'
+        ontop = ROOT.parent / 'endpoint/ontop'
+        # Fixed default namespaces match the assertions below.
+        env = {k: v for k, v in os.environ.items() if not k.startswith('NS_')}
+        with (ontop / 'baci.r2rml.ttl.in').open() as template, mapping.open('w') as output:
+            subprocess.run(['sh', str(ontop / 'expand.sh')], stdin=template,
+                           stdout=output, env=env, check=True)
         queries = [
             ('SELECT (COUNT(*) AS ?n) WHERE { ?o a <http://purl.org/linked-data/cube#Observation> }', ['5']),
-            ('SELECT ?p ?v ?q WHERE { <https://example.org/baci/observation/HS92_V202601/2024-276-251-010111> <https://example.org/baci/vocab/product> ?p; <http://purl.org/linked-data/sdmx/2009/measure#obsValue> ?v; <https://example.org/baci/vocab/quantity> ?q }', ['https://example.org/baci/product/HS92/010111', '1.25', '0.0']),
+            ('SELECT ?p ?v ?q WHERE { <https://data.projekt-provider.de/baci/observation/HS92_V202601/2024-276-251-010111> <https://schema.projekt-provider.de/baci#product> ?p; <http://purl.org/linked-data/sdmx/2009/measure#obsValue> ?v; <https://schema.projekt-provider.de/baci#quantity> ?q }', ['https://data.projekt-provider.de/baci/product/HS92/010111', '1.25', '0.0']),
             ('SELECT (SUM(?v) AS ?sum) WHERE { ?o <http://purl.org/linked-data/sdmx/2009/measure#obsValue> ?v FILTER(?v > 1) }', ['10.25']),
-            ('SELECT ?area WHERE { ?area <https://example.org/baci/vocab/hasCountry> <https://example.org/country/BEL> }', ['https://example.org/baci/area/56']),
-            ('SELECT (COUNT(*) AS ?n) WHERE { ?o <http://purl.org/linked-data/sdmx/2009/measure#obsValue> ?v FILTER NOT EXISTS { ?o <https://example.org/baci/vocab/quantity> ?q } }', ['2']),
-            ('SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o FILTER(STRSTARTS(STR(?s), "https://example.org/country/")) }', ['0']),
+            ('SELECT ?area WHERE { ?area <https://schema.projekt-provider.de/global#hasCountry> <https://data.projekt-provider.de/country/BEL> }', ['https://data.projekt-provider.de/baci/area/56']),
+            ('SELECT (COUNT(*) AS ?n) WHERE { ?o <http://purl.org/linked-data/sdmx/2009/measure#obsValue> ?v FILTER NOT EXISTS { ?o <https://schema.projekt-provider.de/baci#quantity> ?q } }', ['2']),
+            ('SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o FILTER(STRSTARTS(STR(?s), "https://data.projekt-provider.de/country/")) }', ['0']),
         ]
-        queries.append(('SELECT (DATATYPE(?year) AS ?yt) (DATATYPE(?v) AS ?vt) (DATATYPE(?q) AS ?qt) WHERE { <https://example.org/baci/observation/HS92_V202601/2024-276-251-010111> <http://purl.org/linked-data/sdmx/2009/dimension#refPeriod> ?year; <http://purl.org/linked-data/sdmx/2009/measure#obsValue> ?v; <https://example.org/baci/vocab/quantity> ?q }', ['http://www.w3.org/2001/XMLSchema#gYear', 'http://www.w3.org/2001/XMLSchema#double', 'http://www.w3.org/2001/XMLSchema#double']))
+        queries.append(('SELECT (DATATYPE(?year) AS ?yt) (DATATYPE(?v) AS ?vt) (DATATYPE(?q) AS ?qt) WHERE { <https://data.projekt-provider.de/baci/observation/HS92_V202601/2024-276-251-010111> <http://purl.org/linked-data/sdmx/2009/dimension#refPeriod> ?year; <http://purl.org/linked-data/sdmx/2009/measure#obsValue> ?v; <https://schema.projekt-provider.de/baci#quantity> ?q }', ['http://www.w3.org/2001/XMLSchema#gYear', 'http://www.w3.org/2001/XMLSchema#double', 'http://www.w3.org/2001/XMLSchema#double']))
         for query, expected in queries:
             with self.subTest(query=query):
                 path = self.directory / 'query.rq'
                 output = self.directory / 'result.csv'
                 path.write_text(query)
-                result = subprocess.run(['bash', CLI, 'query', '-m', str(ROOT.parent / 'endpoint/ontop/baci.r2rml.ttl'),
+                result = subprocess.run(['bash', CLI, 'query', '-m', str(mapping),
                                          '-p', str(properties), '-c', str(ROOT.parent / 'endpoint/ontop/baci-constraints.lst'),
                                          '--lenses', str(ROOT.parent / 'endpoint/ontop/baci-lenses.json'), '-q', str(path),
                                          '-o', str(output)], capture_output=True, text=True, timeout=120)
